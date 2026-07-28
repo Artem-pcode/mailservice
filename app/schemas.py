@@ -22,21 +22,15 @@ class RevealedPassword(BaseModel):
     real_password: str
 
 
-class TemplateCreate(BaseModel):
-    name: str
-    sender_pattern: str
-    subject_pattern: str | None = None
-    body_pattern: str
-    link_extract_regex: str
+class CodeResponse(BaseModel):
+    found: bool
+    code: str | None = None
+    date: datetime | None = None
+    timestamp_ago: str | None = None
 
 
-class TemplateOut(TemplateCreate):
-    id: int
-    account_id: int
-
-    model_config = {"from_attributes": True}
-
-
-class FetchLinkResponse(BaseModel):
+class LinkResponse(BaseModel):
     found: bool
     link: str | None = None
+    date: datetime | None = None
+    timestamp_ago: str | None = None
