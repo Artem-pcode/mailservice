@@ -5,10 +5,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.dependencies import verify_api_key
 from app.models import MailAccount
-from app.schemas import FetchLinkResponse
+from app.schemas import CodeResponse, LinkResponse
 from app.security import decrypt_real_password, verify_request_password
 from app.services.imap_client import fetch_messages
-from app.services.matcher import find_matching_link
+from app.services.matcher import (
+    find_login_code,
+    find_recovery_code,
+    find_removal_link,
+    find_verification_link,
+)
 
 router = APIRouter(prefix="/fetch", tags=["fetch"], dependencies=[Depends(verify_api_key)])
 
@@ -20,43 +25,46 @@ async def _authorize_and_get_account(email: str, request_password: str, db: Asyn
     return account
 
 
-@router.get("/template-one", response_model=FetchLinkResponse)
-async def fetch_template_one(email: str, request_password: str, db: AsyncSession = Depends(get_db)):
-    account = await _authorize_and_get_account(email, request_password, db)
+async def _get_messages(account: MailAccount) -> list:
     real_password = decrypt_real_password(account.encrypted_real_password)
-    messages = await fetch_messages(email, real_password)
-
-    try:
-        link = find_matching_link(messages, template=account.templates[0])
-    except NotImplementedError:
-        raise HTTPException(status.HTTP_501_NOT_IMPLEMENTED, detail="Логика шаблона ещё не реализована")
-
-    return FetchLinkResponse(found=link is not None, link=link)
+    return await fetch_messages(account.email, real_password)
 
 
-@router.get("/template-two", response_model=FetchLinkResponse)
-async def fetch_template_two(email: str, request_password: str, db: AsyncSession = Depends(get_db)):
+@router.get("/recovery-code", response_model=CodeResponse)
+async def fetch_recovery_code(email: str, request_password: str, db: AsyncSession = Depends(get_db)):
     account = await _authorize_and_get_account(email, request_password, db)
-    real_password = decrypt_real_password(account.encrypted_real_password)
-    messages = await fetch_messages(email, real_password)
-
-    try:
-        link = find_matching_link(messages, template=account.templates[0])
-    except NotImplementedError:
-        raise HTTPException(status.HTTP_501_NOT_IMPLEMENTED, detail="Логика шаблона ещё не реализована")
-
-    return FetchLinkResponse(found=link is not None, link=link)
+    messages = await _get_messages(account)
+    result = find_recovery_code(messages)
+    if result is None:
+        return CodeResponse(found=False)
+    return CodeResponse(found=True, **result)
 
 
-@router.get("/template-three", response_model=FetchLinkResponse)
-async def fetch_template_three(email: str, request_password: str, db: AsyncSession = Depends(get_db)):
+@router.get("/login-code", response_model=CodeResponse)
+async def fetch_login_code(email: str, request_password: str, db: AsyncSession = Depends(get_db)):
     account = await _authorize_and_get_account(email, request_password, db)
-    real_password = decrypt_real_password(account.encrypted_real_password)
-    messages = await fetch_messages(email, real_password)
+    messages = await _get_messages(account)
+    result = find_login_code(messages)
+    if result is None:
+        return CodeResponse(found=False)
+    return CodeResponse(found=True, **result)
 
-    try:
-        link = find_matching_link(messages, template=account.templates[0])
-    except NotImplementedError:
-        raise HTTPException(status.HTTP_501_NOT_IMPLEMENTED, detail="Логика шаблона ещё не реализована")
 
-    return FetchLinkResponse(found=link is not None, link=link)
+@router.get("/removal-link", response_model=LinkResponse)
+async def fetch_removal_link(email: str, request_password: str, db: AsyncSession = Depends(get_db)):
+    account = await _authorize_and_get_account(email, request_password, db)
+    messages = await _get_messages(account)
+    result = find_removal_link(messages)
+    if result is None:
+        return LinkResponse(found=False)
+    return LinkResponse(found=True, **result)
+
+
+@router.get("/verification-link", response_model=LinkResponse)
+async def fetch_verification_link(email: str, request_password: str, db: AsyncSession = Depends(get_db)):
+    account = await _authorize_and_get_account(email, request_password, db)
+    messages = await _get_messages(account)
+    result = find_verification_link(messages)
+    if result is None:
+        return LinkResponse(found=False)
+    return LinkResponse(found=True, **result)
