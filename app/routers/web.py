@@ -65,7 +65,7 @@ async def get_current_account(
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+    return templates.TemplateResponse(request, "login.html", {"error": None})
 
 
 @router.post("/login")
@@ -77,8 +77,9 @@ async def login_submit(
 ):
     if _is_locked_out(email):
         return templates.TemplateResponse(
+            request,
             "login.html",
-            {"request": request, "error": "Слишком много неверных попыток. Попробуй позже."},
+            {"error": "Слишком много неверных попыток. Попробуй позже."},
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
         )
 
@@ -87,8 +88,9 @@ async def login_submit(
     if account is None or not verify_request_password(request_password, account.request_password_hash):
         _register_failed_attempt(email)
         return templates.TemplateResponse(
+            request,
             "login.html",
-            {"request": request, "error": "Неверный email или пароль"},
+            {"error": "Неверный email или пароль"},
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
 
@@ -138,9 +140,9 @@ async def dashboard(request: Request, account: MailAccount = Depends(get_current
     messages = await fetch_messages(account.email, real_password)
 
     return templates.TemplateResponse(
+        request,
         "dashboard.html",
         {
-            "request": request,
             "email": account.email,
             "recovery_codes": find_all_recovery_codes(messages),
         },
