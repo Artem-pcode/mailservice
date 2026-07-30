@@ -4,7 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.routers import accounts, admin, fetch, web
 
-app = FastAPI(title="Mail Service API", description="Приватный API для управления почтовыми ящиками без веб-интерфейса")
+app = FastAPI(title="Mail Service API", description="Приватный API для управления почтовыми ящиками без веб-интерфейса", docs_url=None, redoc_url=None, openapi_url=None)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
