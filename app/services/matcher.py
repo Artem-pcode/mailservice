@@ -96,6 +96,30 @@ def find_verification_link(messages: list[MailMessage]) -> dict | None:
     return None
 
 
+def find_all_recovery_codes(messages: list[MailMessage]) -> list[dict]:
+    results = []
+    for msg in messages:
+        if "steampowered.com" not in msg.from_:
+            continue
+
+        if "CAccountRecoveryCodeEmail" not in str(msg.headers):
+            continue
+
+        text = msg.text or msg.html or ""
+
+        match = re.search(r'([A-Z0-9]{5})', text)
+        if match:
+            code = match.group(1)
+            if not re.search(r'https?://[^\s]*' + re.escape(code), text):
+                results.append({
+                    'code': code,
+                    'date': msg.date,
+                })
+
+    results.sort(key=lambda x: x['date'], reverse=True)
+    return results
+
+
 def _get_time_ago(dt: datetime) -> str:
     if dt is None:
         return "неизвестно"
