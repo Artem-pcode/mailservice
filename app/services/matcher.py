@@ -17,7 +17,7 @@ def find_recovery_code(messages: list[MailMessage]) -> dict | None:
             
         text = msg.text or msg.html or ""
         
-        match = re.search(r'([A-Z0-9]{5})', text, re.MULTILINE)
+        match = re.search(r'^([A-Z0-9]{5})$', text, re.MULTILINE)
         if match:
             code = match.group(1)
             if not re.search(r'https?://[^\s]*' + re.escape(code), text):
@@ -40,7 +40,7 @@ def find_login_code(messages: list[MailMessage]) -> dict | None:
             
         text = msg.text or msg.html or ""
         
-        match = re.search(r'([A-Z0-9]{5})', text, re.MULTILINE)
+        match = re.search(r'^([A-Z0-9]{5})$', text, re.MULTILINE)
         if match:
             code = match.group(1)
             if not re.search(r'https?://[^\s]*' + re.escape(code), text):
@@ -107,7 +107,7 @@ def find_all_recovery_codes(messages: list[MailMessage]) -> list[dict]:
 
         text = msg.text or msg.html or ""
 
-        match = re.search(r'([A-Z0-9]{5})', text, re.MULTILINE)
+        match = re.search(r'^([A-Z0-9]{5})$', text, re.MULTILINE)
         if match:
             code = match.group(1)
             if not re.search(r'https?://[^\s]*' + re.escape(code), text):
