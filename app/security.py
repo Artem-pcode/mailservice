@@ -1,4 +1,5 @@
 import secrets
+import hashlib
 
 import bcrypt
 from cryptography.fernet import Fernet, InvalidToken
@@ -34,3 +35,11 @@ def decrypt_real_password(encrypted_password: str) -> str:
         return _fernet.decrypt(encrypted_password.encode()).decode()
     except InvalidToken as exc:
         raise ValueError("Не удалось расшифровать пароль — проверь ENCRYPTION_KEY") from exc
+
+
+def generate_session_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def hash_session_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
