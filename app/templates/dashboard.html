@@ -74,6 +74,20 @@
             word-break: break-all;
             font-size: 0.8rem;
         }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
     </style>
 </head>
 
@@ -81,7 +95,7 @@
     <div class="header">
         <h1>{{ email }}</h1>
         <form method="post" action="/logout" style="margin:0;">
-            <button type="submit" style="background:none;border:none;cursor:pointer;" class="logout">Выйти</button>
+            <button type="submit" class="logout">Выйти</button>
         </form>
     </div>
 
