@@ -7,9 +7,16 @@ def _get_message_type(msg: MailMessage) -> str:
     return msg.headers.get("x-steam-message-type", ("",))[0]
 
 
+def _dkim_passed(msg: MailMessage) -> bool:
+    auth_results = str(msg.headers.get("authentication-results", ""))
+    return "dkim=pass" in auth_results and "dmarc=pass" in auth_results
+
+
 def find_recovery_code(messages: list[MailMessage]) -> dict | None:
     for msg in messages:
         if "steampowered.com" not in msg.from_:
+            continue
+        if not _dkim_passed(msg):
             continue
             
         if _get_message_type(msg) != "CAccountRecoveryCodeEmail":
@@ -34,6 +41,8 @@ def find_login_code(messages: list[MailMessage]) -> dict | None:
     for msg in messages:
         if "steampowered.com" not in msg.from_:
             continue
+        if not _dkim_passed(msg):
+            continue
             
         if _get_message_type(msg) != "CEmailSteamGuard_Web":
             continue
@@ -57,6 +66,8 @@ def find_removal_link(messages: list[MailMessage]) -> dict | None:
     for msg in messages:
         if "steampowered.com" not in msg.from_:
             continue
+        if not _dkim_passed(msg):
+            continue
             
         if _get_message_type(msg) != "CSteamGuardRemovalConfirmation":
             continue
@@ -79,6 +90,8 @@ def find_verification_link(messages: list[MailMessage]) -> dict | None:
     for msg in messages:
         if "steampowered.com" not in msg.from_:
             continue
+        if not _dkim_passed(msg):
+            continue
             
         if _get_message_type(msg) != "CAccountCreationEmailVerification":
             continue
@@ -100,6 +113,8 @@ def find_all_recovery_codes(messages: list[MailMessage]) -> list[dict]:
     results = []
     for msg in messages:
         if "steampowered.com" not in msg.from_:
+            continue
+        if not _dkim_passed(msg):
             continue
 
         if "CAccountRecoveryCodeEmail" not in str(msg.headers):
