@@ -6,7 +6,8 @@ from app.database import get_db
 from app.dependencies import verify_api_key
 from app.models import MailAccount
 from app.schemas import CodeResponse, LinkResponse
-from app.security import decrypt_real_password, verify_request_password
+from app.security import decrypt_real_password, verify_request_password, hash_request_password
+
 from app.services.imap_client import fetch_messages
 from app.services.matcher import (
     find_login_code,
@@ -17,10 +18,15 @@ from app.services.matcher import (
 
 router = APIRouter(prefix="/fetch", tags=["fetch"], dependencies=[Depends(verify_api_key)])
 
+import secrets
+_DUMMY_HASH = hash_request_password(secrets.token_urlsafe(16))
 
-async def _authorize_and_get_account(email: str, request_password: str, db: AsyncSession) -> MailAccount:
+
+async def _authorize_and_get_account(email, request_password, db):
     account = await db.scalar(select(MailAccount).where(MailAccount.email == email))
-    if account is None or not verify_request_password(request_password, account.request_password_hash):
+    hash_to_check = account.request_password_hash if account else _DUMMY_HASH
+    password_ok = verify_request_password(request_password, hash_to_check)
+    if account is None or not account.is_active or not password_ok:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Неверный email или request_password")
     return account
 
