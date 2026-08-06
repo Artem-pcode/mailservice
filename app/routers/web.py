@@ -15,11 +15,15 @@ from app.security import (
     generate_session_token,
     hash_session_token,
     verify_request_password,
+    hash_request_password
 )
 from app.services.imap_client import fetch_messages
 from app.services.matcher import (
     find_all_recovery_codes,
 )
+
+import secrets
+_DUMMY_HASH = hash_request_password(secrets.token_urlsafe(16))
 
 router = APIRouter(tags=["web"])
 templates = Jinja2Templates(directory="app/templates")
@@ -85,7 +89,9 @@ async def login_submit(
 
     account = await db.scalar(select(MailAccount).where(MailAccount.email == email))
 
-    if account is None or not verify_request_password(request_password, account.request_password_hash):
+    hash_to_check = account.request_password_hash if account else _DUMMY_HASH
+    password_ok = verify_request_password(request_password, hash_to_check)
+    if account is None or not account.is_active or not password_ok:
         _register_failed_attempt(email)
         return templates.TemplateResponse(
             request,
