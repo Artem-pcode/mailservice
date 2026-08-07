@@ -111,7 +111,7 @@ def find_verification_link(messages: list[MailMessage]) -> dict | None:
 
 def find_all_recovery_codes(messages: list[MailMessage]) -> list[dict]:
     results = []
-    for msg in messages:
+    for msg in reversed(messages):
         if "steampowered.com" not in msg.from_:
             continue
         if not _dkim_passed(msg):
