@@ -111,7 +111,7 @@ def find_verification_link(messages: list[MailMessage]) -> dict | None:
 
 def find_all_recovery_codes(messages: list[MailMessage]) -> list[dict]:
     results = []
-    for msg in reversed(messages):
+    for msg in messages:
         if "steampowered.com" not in msg.from_:
             continue
         if not _dkim_passed(msg):
@@ -128,7 +128,8 @@ def find_all_recovery_codes(messages: list[MailMessage]) -> list[dict]:
             if not re.search(r'https?://[^\s]*' + re.escape(code), text):
                 results.append({
                     'code': code,
-                    'date': _get_time_ago(msg.date),
+                    'date': msg.date,
+                    'time_ago': _get_time_ago(msg.date)
                 })
 
     results.sort(key=lambda x: x['date'], reverse=True)
