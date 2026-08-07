@@ -7,6 +7,7 @@ from app.dependencies import verify_api_key
 from app.models import MailAccount
 from app.schemas import CodeResponse, LinkResponse
 from app.security import decrypt_real_password, verify_request_password, hash_request_password
+
 from app.services.imap_client import fetch_messages
 from app.services.matcher import (
     find_login_code,
