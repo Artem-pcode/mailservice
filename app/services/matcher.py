@@ -128,7 +128,7 @@ def find_all_recovery_codes(messages: list[MailMessage]) -> list[dict]:
             if not re.search(r'https?://[^\s]*' + re.escape(code), text):
                 results.append({
                     'code': code,
-                    'date': msg.date,
+                    'date': _get_time_ago(msg.date),
                 })
 
     results.sort(key=lambda x: x['date'], reverse=True)
