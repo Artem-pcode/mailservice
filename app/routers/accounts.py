@@ -8,6 +8,8 @@ from app.models import MailAccount
 from app.schemas import MailAccountCreate, MailAccountOut
 from app.security import encrypt_real_password, generate_real_password, hash_request_password
 from app.services.mailserver import MailserverError, create_mailbox, delete_mailbox
+from app.security import decrypt_real_password
+from app.services.imap_client import is_mailbox_ready
 
 router = APIRouter(prefix="/accounts", tags=["accounts"], dependencies=[Depends(verify_api_key)])
 
@@ -55,3 +57,15 @@ async def delete_account(account_id: int, db: AsyncSession = Depends(get_db)):
 async def list_accounts(db: AsyncSession = Depends(get_db)):
     result = await db.scalars(select(MailAccount))
     return result.all()
+
+
+@router.get("/{account_id}/ready")
+async def check_account_ready(account_id: int, db: AsyncSession = Depends(get_db)):
+    account = await db.get(MailAccount, account_id)
+    if account is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Ящик не найден")
+
+    real_password = decrypt_real_password(account.encrypted_real_password)
+    ready = await is_mailbox_ready(account.email, real_password)
+
+    return {"ready": ready}
