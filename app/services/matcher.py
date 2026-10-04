@@ -18,12 +18,12 @@ def find_recovery_code(messages: list[MailMessage]) -> dict | None:
             continue
         if not _dkim_passed(msg):
             continue
-            
+
         if _get_message_type(msg) != "CAccountRecoveryCodeEmail":
             continue
-            
+
         text = msg.text or msg.html or ""
-        
+
         match = re.search(r'(?<!\S)([A-Z0-9]{5})(?!\S)', text)
         if match:
             code = match.group(1)
@@ -33,7 +33,7 @@ def find_recovery_code(messages: list[MailMessage]) -> dict | None:
                     'date': msg.date,
                     'timestamp_ago': _get_time_ago(msg.date)
                 }
-    
+
     return None
 
 
@@ -43,12 +43,12 @@ def find_login_code(messages: list[MailMessage]) -> dict | None:
             continue
         if not _dkim_passed(msg):
             continue
-            
-        if _get_message_type(msg) != "CEmailSteamGuard_Web":
+
+        if _get_message_type(msg) not in ("CEmailSteamGuard_Web", "CEmailSteamGuard_Computer"):
             continue
-            
+
         text = msg.text or msg.html or ""
-        
+
         match = re.search(r'(?<!\S)([A-Z0-9]{5})(?!\S)', text)
         if match:
             code = match.group(1)
@@ -58,7 +58,7 @@ def find_login_code(messages: list[MailMessage]) -> dict | None:
                     'date': msg.date,
                     'timestamp_ago': _get_time_ago(msg.date)
                 }
-    
+
     return None
 
 
@@ -68,12 +68,12 @@ def find_removal_link(messages: list[MailMessage]) -> dict | None:
             continue
         if not _dkim_passed(msg):
             continue
-            
+
         if _get_message_type(msg) != "CSteamGuardRemovalConfirmation":
             continue
-            
+
         text = msg.text or msg.html or ""
-        
+
         # Ищем полную ссылку
         match = re.search(r'(https://store\.steampowered\.com/account/steamguarddisableverification\?[^\s\n]+)', text)
         if match:
@@ -82,7 +82,7 @@ def find_removal_link(messages: list[MailMessage]) -> dict | None:
                 'date': msg.date,
                 'timestamp_ago': _get_time_ago(msg.date)
             }
-    
+
     return None
 
 
@@ -92,12 +92,12 @@ def find_verification_link(messages: list[MailMessage]) -> dict | None:
             continue
         if not _dkim_passed(msg):
             continue
-            
+
         if _get_message_type(msg) != "CAccountCreationEmailVerification":
             continue
-            
+
         text = msg.text or msg.html or ""
-        
+
         match = re.search(r'(https://store\.steampowered\.com/account/newaccountverification\?[^\s\n]+)', text)
         if match:
             return {
@@ -105,7 +105,7 @@ def find_verification_link(messages: list[MailMessage]) -> dict | None:
                 'date': msg.date,
                 'timestamp_ago': _get_time_ago(msg.date)
             }
-    
+
     return None
 
 
@@ -142,12 +142,12 @@ def _get_time_ago(dt: datetime) -> str:
 
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
-    
+
     now = datetime.now(timezone.utc)
     diff = now - dt
-    
+
     seconds = int(diff.total_seconds())
-    
+
     if seconds < 60:
         return f"{seconds} секунд назад"
     elif seconds < 3600:
