@@ -159,3 +159,29 @@ def _get_time_ago(dt: datetime) -> str:
     else:
         days = seconds // 86400
         return f"{days} дней назад"
+
+
+def get_current_steamguard_code(messages: list[MailMessage]) -> str | None:
+    """
+    Возвращает код SteamGuard (вход с нового устройства), только если он
+    пришёл не позднее часа назад. Если самого свежего кода нет или он старше
+    часа — считаем, что актуального кода сейчас нет, возвращаем None.
+    """
+    result = find_login_code(messages)
+    if result is None:
+        return None
+
+    dt = result['date']
+    if dt is None:
+        return None
+
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+
+    now = datetime.now(timezone.utc)
+    age_seconds = (now - dt).total_seconds()
+
+    if age_seconds > 3600:
+        return None
+
+    return result['code']

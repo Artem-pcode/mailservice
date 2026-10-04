@@ -20,6 +20,7 @@ from app.security import (
 from app.services.imap_client import fetch_messages
 from app.services.matcher import (
     find_all_recovery_codes,
+    get_current_steamguard_code,
 )
 
 import secrets
@@ -151,6 +152,7 @@ async def dashboard(request: Request, account: MailAccount = Depends(get_current
         {
             "email": account.email,
             "recovery_codes": find_all_recovery_codes(messages),
+            "steamguard_code": get_current_steamguard_code(messages),
         },
     )
 

@@ -88,6 +88,33 @@
         .logout-btn:hover {
             background: #c82333;
         }
+
+        .steamguard-box {
+            text-align: center;
+            background: #1a1d24;
+            border: 1px solid #2d3138;
+            border-radius: 12px;
+            padding: 2rem 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .steamguard-label {
+            font-size: 1rem;
+            color: #9ca3af;
+            margin-bottom: 0.75rem;
+        }
+
+        .steamguard-code {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            color: #e5e7eb;
+        }
+
+        .steamguard-empty {
+            font-size: 1.3rem;
+            color: #6b7280;
+        }
     </style>
 </head>
 
@@ -99,7 +126,16 @@
         </form>
     </div>
 
-    <h2>История кодов восстановления</h2>
+    <div class="steamguard-box">
+        <div class="steamguard-label">Код для SteamGuard</div>
+        {% if steamguard_code %}
+        <div class="steamguard-code"><code>{{ steamguard_code }}</code></div>
+        {% else %}
+        <div class="steamguard-empty">Кода нет</div>
+        {% endif %}
+    </div>
+
+    <h2>Коды для смены почты</h2>
     {% if recovery_codes %}
     <table>
         <tr>
@@ -114,7 +150,7 @@
         {% endfor %}
     </table>
     {% else %}
-    <div class="empty">Кодов восстановления не найдено</div>
+    <div class="empty">Кодов для смены почты не найдено</div>
     {% endif %}
 </body>
 
